@@ -1,0 +1,3 @@
+resources:
+- ./deconz-service-headless.yaml
+- ./deconz-statefulset.yaml

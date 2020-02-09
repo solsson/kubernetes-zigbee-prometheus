@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: deconz
+spec:
+  selector:
+    matchLabels:
+      app: deconz
+  serviceName: "deconz"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: deconz
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: deconz
+        image: marthoc/deconz:amd64-2.05.72@sha256:a7fee8de8e591fa79d7a468b9bf86e50b4c0eba1407b0ad30647510bfc5b6904
+        ports:
+        - containerPort: 32780
+          name: rest
+        - containerPort: 32783
+          name: websockets
+        env:
+        - name: TZ
+          value: Europe/Stockholm
+        - name: DECONZ_WEB_PORT
+          value: "32780"
+        - name: DECONZ_WS_PORT
+          value: "32783"
+        - name: ECONZ_DEVICE
+          value: /dev/ttyACM0
+        volumeMounts:
+        - name: data
+          mountPath: /root/.local/share/dresden-elektronik/deCONZ
+        - name: gateway-device
+          mountPath: /dev/ttyACM0
+        securityContext:
+          privileged: true
+      volumes:
+      - name: gateway-device
+        hostPath:
+          path: /dev/ttyACM0
+      - name: data
+        hostPath:
+          path: /opt/deconz-testdata/dresden-elektronik/deCONZ
