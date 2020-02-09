@@ -1,0 +1,5 @@
+version: '2'
+services:
+
+  conbee:
+    image: marthoc/deconz:amd64-2.05.72@sha256:a7fee8de8e591fa79d7a468b9bf86e50b4c0eba1407b0ad30647510bfc5b6904
