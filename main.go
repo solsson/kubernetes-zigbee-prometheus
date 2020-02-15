@@ -3,7 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/solsson/go-conbee/sensors"
 )
@@ -29,6 +33,12 @@ func init() {
 }
 
 func main() {
+	foo := newFooCollector()
+	prometheus.MustRegister(foo)
+
+	http.Handle("/metrics", promhttp.Handler())
+	fmt.Println("Listening on port 8080")
+	http.ListenAndServe(":8080", nil)
 	if conbeeKey != "" {
 		ss := sensors.New(conbeeHost, conbeeKey)
 		sensors, err := ss.GetAllSensors()
