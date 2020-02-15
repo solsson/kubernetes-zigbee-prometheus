@@ -8,8 +8,6 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	"github.com/solsson/go-conbee/sensors"
 )
 
 var (
@@ -34,19 +32,7 @@ func init() {
 
 func main() {
 	if conbeeKey != "" {
-		ss := sensors.New(conbeeHost, conbeeKey)
-		sensors, err := ss.GetAllSensors()
-		if err != nil {
-			fmt.Println("sensors.GetAllSensors() ERROR: ", err)
-			os.Exit(1)
-		}
-		fmt.Println()
-		fmt.Println("Sensors")
-		fmt.Println("------")
-		for _, l := range sensors {
-			fmt.Printf("Sensor:\n%s\n", l.StringWithIndentation("  "))
-		}
-		foo := newFooCollector()
+		foo := newDeconzCollector(conbeeHost, conbeeKey)
 		prometheus.MustRegister(foo)
 	
 		http.Handle("/metrics", promhttp.Handler())

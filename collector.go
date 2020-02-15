@@ -1,6 +1,10 @@
 package main
 
 import (
+	"fmt"
+
+	"github.com/solsson/go-conbee/sensors"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -8,15 +12,32 @@ import (
 //to prometheus descriptors for each metric you wish to expose.
 //Note you can also include fields of other types if they provide utility
 //but we just won't be exposing them as metrics.
-type fooCollector struct {
+type deconzCollector struct {
 	fooMetric *prometheus.Desc
 	barMetric *prometheus.Desc
 }
 
 //You must create a constructor for you collector that
 //initializes every descriptor and returns a pointer to the collector
-func newFooCollector() *fooCollector {
-	return &fooCollector{
+func newDeconzCollector(conbeeHost string, conbeeKey string) *deconzCollector {
+
+	ss := sensors.New(conbeeHost, conbeeKey)
+	sensors, err := ss.GetAllSensors()
+	if err != nil {
+		fmt.Println("sensors.GetAllSensors() ERROR: ", err)
+	}
+	fmt.Println()
+	fmt.Println("Sensors")
+	fmt.Println("------")
+	for _, l := range sensors {
+		// fmt.Printf("Sensor:\n%s\n", l.StringWithIndentation("  "))
+
+		if l.Type == "ZHATemperature" {
+			fmt.Printf("Temp %d\n", l.State.Temperature)
+		}
+	}
+
+	return &deconzCollector{
 		fooMetric: prometheus.NewDesc("foo_metric",
 			"Shows whether a foo has occurred in our cluster",
 			nil, nil,
@@ -30,7 +51,7 @@ func newFooCollector() *fooCollector {
 
 //Each and every collector must implement the Describe function.
 //It essentially writes all descriptors to the prometheus desc channel.
-func (collector *fooCollector) Describe(ch chan<- *prometheus.Desc) {
+func (collector *deconzCollector) Describe(ch chan<- *prometheus.Desc) {
 
 	//Update this section with the each metric you create for a given collector
 	ch <- collector.fooMetric
@@ -38,7 +59,7 @@ func (collector *fooCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 //Collect implements required collect function for all promehteus collectors
-func (collector *fooCollector) Collect(ch chan<- prometheus.Metric) {
+func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 
 	//Implement logic here to determine proper metric value to return to prometheus
 	//for each descriptor or call other functions that do so.
