@@ -1,0 +1,4 @@
+github.com/jurgen-kluft/go-conbee v0.0.0-20200204021822-a95f7fa490e5 h1:dvl2qlmlA73EbOi7vfr0tvIBTfkLTPdl4RlA7h/X9tM=
+github.com/jurgen-kluft/go-conbee v0.0.0-20200204021822-a95f7fa490e5/go.mod h1:nxv2+SfQy+RF9UzE0rnRpYJGVmBA1MQ45UxUgiOxdqg=
+github.com/solsson/go-conbee v0.0.0-20200204021822-a95f7fa490e5 h1:puiVofYX9JUaNo9YDlBo0HOYzOuxuqy8zshfvpo0sTM=
+github.com/solsson/go-conbee v0.0.0-20200204021822-a95f7fa490e5/go.mod h1:urQg9pUah+I2nRtvV2VNrbvATz02I+21om4UWw5rcf4=
