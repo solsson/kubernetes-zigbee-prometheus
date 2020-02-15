@@ -31,6 +31,14 @@ spec:
           value: "32783"
         - name: DECONZ_DEVICE
           value: /dev/ttyACM0
+        - name: DEBUG_INFO
+          value: "1"
+        - name: DEBUG_APS
+          value: "0"
+        - name: DEBUG_ZCL
+          value: "0"
+        - name: DEBUG_ZDP
+          value: "0"
         volumeMounts:
         - name: data
           mountPath: /root/.local/share/dresden-elektronik/deCONZ
