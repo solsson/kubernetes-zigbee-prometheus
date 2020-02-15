@@ -13,38 +13,59 @@ import (
 //Note you can also include fields of other types if they provide utility
 //but we just won't be exposing them as metrics.
 type deconzCollector struct {
-	fooMetric *prometheus.Desc
-	barMetric *prometheus.Desc
+	temperatureMetric *prometheus.Desc
+	humidityMetric *prometheus.Desc
+	pressureMetric *prometheus.Desc
 }
+
+var (
+	ss *sensors.Sensors = nil
+)
 
 //You must create a constructor for you collector that
 //initializes every descriptor and returns a pointer to the collector
 func newDeconzCollector(conbeeHost string, conbeeKey string) *deconzCollector {
 
-	ss := sensors.New(conbeeHost, conbeeKey)
+	ss = sensors.New(conbeeHost, conbeeKey)
 	sensors, err := ss.GetAllSensors()
 	if err != nil {
 		fmt.Println("sensors.GetAllSensors() ERROR: ", err)
-	}
-	fmt.Println()
-	fmt.Println("Sensors")
-	fmt.Println("------")
-	for _, l := range sensors {
-		// fmt.Printf("Sensor:\n%s\n", l.StringWithIndentation("  "))
-
-		if l.Type == "ZHATemperature" {
-			fmt.Printf("Temp %d\n", l.State.Temperature)
+	} else {
+		fmt.Println()
+		fmt.Println("Sensors")
+		fmt.Println("------")
+		for _, l := range sensors {
+			//fmt.Printf("Sensor:\n%s\n", l.StringWithIndentation("  "))
+	
+			if l.Type == "ZHATemperature" {
+				fmt.Printf("%s Temperature %d '%s' %d\n", l.State.LastUpdated, l.ID, l.Name, l.State.Temperature)
+			}
+			if l.Type == "ZHAHumidity" {
+				fmt.Printf("%s Humidity %d '%s' %d\n", l.State.LastUpdated, l.ID, l.Name, l.State.Humidity)
+			}
+			if l.Type == "ZHAPressure" {
+				fmt.Printf("%s Pressure %d '%s' %d\n", l.State.LastUpdated, l.ID, l.Name, l.State.Pressure)
+			}
 		}
 	}
 
 	return &deconzCollector{
-		fooMetric: prometheus.NewDesc("foo_metric",
-			"Shows whether a foo has occurred in our cluster",
-			nil, nil,
+		temperatureMetric: prometheus.NewDesc(
+			"climate_temperature",
+			"Temperature C",
+			[]string{"name"}, nil,
 		),
-		barMetric: prometheus.NewDesc("bar_metric",
-			"Shows whether a bar has occurred in our cluster",
-			nil, nil,
+		humidityMetric: prometheus.NewDesc(
+			"climate_humidity",
+			"Humidity %",
+			[]string{"name"},
+			nil,
+		),
+		pressureMetric: prometheus.NewDesc(
+			"climate_pressure",
+			"Pressure",
+			[]string{"name"},
+			nil,
 		),
 	}
 }
@@ -54,23 +75,44 @@ func newDeconzCollector(conbeeHost string, conbeeKey string) *deconzCollector {
 func (collector *deconzCollector) Describe(ch chan<- *prometheus.Desc) {
 
 	//Update this section with the each metric you create for a given collector
-	ch <- collector.fooMetric
-	ch <- collector.barMetric
+	ch <- collector.temperatureMetric
+	ch <- collector.humidityMetric
+	ch <- collector.pressureMetric
 }
 
 //Collect implements required collect function for all promehteus collectors
 func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 
-	//Implement logic here to determine proper metric value to return to prometheus
-	//for each descriptor or call other functions that do so.
-	var metricValue float64
-	if 1 == 1 {
-		metricValue = 1
+	sensors, err := ss.GetAllSensors()
+	if err != nil {
+		fmt.Println("sensors.GetAllSensors() ERROR: ", err)
+		return
 	}
 
-	//Write latest value for each metric in the prometheus metric channel.
-	//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
-	ch <- prometheus.MustNewConstMetric(collector.fooMetric, prometheus.CounterValue, metricValue)
-	ch <- prometheus.MustNewConstMetric(collector.barMetric, prometheus.CounterValue, metricValue)
+	// TODO stale metrics can only be deteced by exporting age based on .State.LastUpdated
+
+	for _, l := range sensors {
+		if l.Type == "ZHATemperature" {
+			ch <- prometheus.MustNewConstMetric(
+				collector.temperatureMetric,
+				prometheus.GaugeValue,
+				float64(l.State.Temperature) / 100,
+				l.Name)
+		}
+		if l.Type == "ZHAHumidity" {
+			ch <- prometheus.MustNewConstMetric(
+				collector.humidityMetric,
+				prometheus.GaugeValue,
+				float64(l.State.Humidity) / 100,
+				l.Name)
+		}
+		if l.Type == "ZHAPressure" {
+			ch <- prometheus.MustNewConstMetric(
+				collector.pressureMetric,
+				prometheus.GaugeValue,
+				float64(l.State.Pressure),
+				l.Name)
+		}
+	}
 
 }

@@ -60,8 +60,8 @@ github.com/prometheus/procfs v0.0.8 h1:+fpWZdT24pJBiqJdAwYBjPSk+5YmQzYNPYzQsdzLk
 github.com/prometheus/procfs v0.0.8/go.mod h1:7Qr8sr6344vo1JqZ6HhLceV9o3AJ1Ff+GxbHq6oeK9A=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
-github.com/solsson/go-conbee v0.0.0-20200204021822-a95f7fa490e5 h1:puiVofYX9JUaNo9YDlBo0HOYzOuxuqy8zshfvpo0sTM=
-github.com/solsson/go-conbee v0.0.0-20200204021822-a95f7fa490e5/go.mod h1:urQg9pUah+I2nRtvV2VNrbvATz02I+21om4UWw5rcf4=
+github.com/solsson/go-conbee v0.0.0-20200215174836-33dca235b43e h1:GuAwVxoSXSP76qyEmwINCEf9j/7yr212+6rdxAtW7M4=
+github.com/solsson/go-conbee v0.0.0-20200215174836-33dca235b43e/go.mod h1:urQg9pUah+I2nRtvV2VNrbvATz02I+21om4UWw5rcf4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
