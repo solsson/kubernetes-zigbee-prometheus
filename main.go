@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/solsson/go-conbee/sensors"
@@ -33,9 +32,6 @@ func init() {
 }
 
 func main() {
-	foo := newFooCollector()
-	prometheus.MustRegister(foo)
-
 	http.Handle("/metrics", promhttp.Handler())
 	fmt.Println("Listening on port 8080")
 	http.ListenAndServe(":8080", nil)
