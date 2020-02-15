@@ -33,12 +33,6 @@ func init() {
 }
 
 func main() {
-	foo := newFooCollector()
-	prometheus.MustRegister(foo)
-
-	http.Handle("/metrics", promhttp.Handler())
-	fmt.Println("Listening on port 8080")
-	http.ListenAndServe(":8080", nil)
 	if conbeeKey != "" {
 		ss := sensors.New(conbeeHost, conbeeKey)
 		sensors, err := ss.GetAllSensors()
@@ -52,6 +46,12 @@ func main() {
 		for _, l := range sensors {
 			fmt.Printf("Sensor:\n%s\n", l.StringWithIndentation("  "))
 		}
+		foo := newFooCollector()
+		prometheus.MustRegister(foo)
+	
+		http.Handle("/metrics", promhttp.Handler())
+		fmt.Println("Listening on port 8080")
+		http.ListenAndServe(":8080", nil)
 	} else {
 		usage()
 	}
