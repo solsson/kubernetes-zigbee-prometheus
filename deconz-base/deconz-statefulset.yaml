@@ -29,7 +29,7 @@ spec:
           value: "32780"
         - name: DECONZ_WS_PORT
           value: "32783"
-        - name: ECONZ_DEVICE
+        - name: DECONZ_DEVICE
           value: /dev/ttyACM0
         volumeMounts:
         - name: data
