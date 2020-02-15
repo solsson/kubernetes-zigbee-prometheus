@@ -16,8 +16,8 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: deconz
-        image: marthoc/deconz:amd64-2.05.72@sha256:a7fee8de8e591fa79d7a468b9bf86e50b4c0eba1407b0ad30647510bfc5b6904
-        #image: marthoc/deconz:armhf-2.05.72@sha256:0882130a06c20f22d173f0e5f9f26326fe7df1b7999a9b4104500c223abd806e
+        #image: marthoc/deconz:amd64-2.05.72@sha256:a7fee8de8e591fa79d7a468b9bf86e50b4c0eba1407b0ad30647510bfc5b6904
+        image: marthoc/deconz:armhf-2.05.72@sha256:0882130a06c20f22d173f0e5f9f26326fe7df1b7999a9b4104500c223abd806e
         ports:
         - containerPort: 32780
           name: rest
@@ -40,6 +40,8 @@ spec:
           value: "0"
         - name: DEBUG_ZDP
           value: "0"
+        - name: DEBUG_OTAU
+          value: "0"
         volumeMounts:
         - name: data
           mountPath: /root/.local/share/dresden-elektronik/deCONZ
@@ -53,4 +55,4 @@ spec:
           path: /dev/ttyACM0
       - name: data
         hostPath:
-          path: /home/pi/deCONZ-data
+          path: /home/pi/.local/share/dresden-elektronik/deCONZ
