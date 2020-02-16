@@ -11,7 +11,9 @@ COPY . .
 
 RUN sed -i 's/zap.NewDevelopment()/zap.NewProduction()/' main.go
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+ARG arch=amd64
+ARG goarm=6
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$arch GOARM=$goarm \
   go build -ldflags '-w -extldflags "-static"'
 
 FROM gcr.io/distroless/base:nonroot@sha256:2b177fbc9a31b85254d264e1fc9a65accc6636d6f1033631b9b086ee589d1fe2
