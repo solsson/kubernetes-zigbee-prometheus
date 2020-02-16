@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/solsson/go-conbee/sensors"
 
@@ -24,9 +25,8 @@ var (
 
 //You must create a constructor for you collector that
 //initializes every descriptor and returns a pointer to the collector
-func newDeconzCollector(conbeeHost string, conbeeKey string) *deconzCollector {
-
-	ss = sensors.New(conbeeHost, conbeeKey)
+func newDeconzCollector(sss *sensors.Sensors) *deconzCollector {
+	ss = sss
 	sensors, err := ss.GetAllSensors()
 	if err != nil {
 		fmt.Println("sensors.GetAllSensors() ERROR: ", err)
@@ -82,6 +82,7 @@ func (collector *deconzCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect implements required collect function for all promehteus collectors
 func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
+	start := time.Now()
 
 	sensors, err := ss.GetAllSensors()
 	if err != nil {
@@ -89,15 +90,19 @@ func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 		return
 	}
 
-	// TODO stale metrics can only be deteced by exporting age based on .State.LastUpdated
+	oldest := "2999-01-01T00:00:00"
 
 	for _, l := range sensors {
+		//fmt.Printf("Sensor:\n%s\n", l.StringWithIndentation("  "))
 		if l.Type == "ZHATemperature" {
 			ch <- prometheus.MustNewConstMetric(
 				collector.temperatureMetric,
 				prometheus.GaugeValue,
 				float64(l.State.Temperature) / 100,
 				l.Name)
+			if oldest > l.State.LastUpdated {
+				oldest = l.State.LastUpdated
+			}
 		}
 		if l.Type == "ZHAHumidity" {
 			ch <- prometheus.MustNewConstMetric(
@@ -105,6 +110,9 @@ func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 				prometheus.GaugeValue,
 				float64(l.State.Humidity) / 100,
 				l.Name)
+			if oldest > l.State.LastUpdated {
+				oldest = l.State.LastUpdated
+			}
 		}
 		if l.Type == "ZHAPressure" {
 			ch <- prometheus.MustNewConstMetric(
@@ -112,7 +120,11 @@ func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 				prometheus.GaugeValue,
 				float64(l.State.Pressure),
 				l.Name)
+			if oldest > l.State.LastUpdated {
+				oldest = l.State.LastUpdated
+			}
 		}
 	}
 
+	fmt.Printf("%v Metrics collected, oldest is from: %sZ\n", start.Format("2006-01-02T15:04:05.000Z"), oldest)
 }

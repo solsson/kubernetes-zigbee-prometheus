@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/solsson/go-conbee/sensors"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -32,7 +34,9 @@ func init() {
 
 func main() {
 	if conbeeKey != "" {
-		foo := newDeconzCollector(conbeeHost, conbeeKey)
+		fmt.Printf("Initializing sensors host %s key length %d", conbeeHost, len(conbeeKey))
+		ss = sensors.New(conbeeHost, conbeeKey)
+		foo := newDeconzCollector(ss)
 		prometheus.MustRegister(foo)
 	
 		http.Handle("/metrics", promhttp.Handler())
