@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	conbeeHost = "10.0.0.18"
-	conbeeKey  = "0A498B9909"
+	conbeeHost string
+	conbeeKey string
 	metricsEndpoint string
 	metricsListen string
 )
@@ -30,8 +30,8 @@ func usage() {
 func init() {
 	on := new(bool)
 	*on = true
-	flag.StringVar(&conbeeHost, "host", os.Getenv("DECONZ_CONBEE_HOST"), "conbee host addr")
-	flag.StringVar(&conbeeKey, "key", os.Getenv("DECONZ_CONBEE_APIKEY"), "conbee api key")
+	flag.StringVar(&conbeeHost, "host", "127.0.0.1:80", "conbee host addr")
+	flag.StringVar(&conbeeKey, "key", "", "conbee api key")
 	flag.StringVar(&metricsEndpoint, "endpoint", "/metrics", "Metrics endpoint path")
 	flag.StringVar(&metricsListen, "listen", ":8080", "Metrics http listen")
 	flag.Parse()
@@ -48,7 +48,7 @@ func main() {
 		)
 
 		ss = sensors.New(conbeeHost, conbeeKey)
-		foo := newDeconzCollector(ss)
+		foo := newDeconzCollector(logger, ss)
 		prometheus.MustRegister(foo)
 		logger.Info("Listening",
 			zap.String("endpoint", metricsEndpoint),

@@ -7,6 +7,8 @@ import (
 	"github.com/solsson/go-conbee/sensors"
 
 	"github.com/prometheus/client_golang/prometheus"
+
+	"go.uber.org/zap"
 )
 
 //Define a struct for you collector that contains pointers
@@ -20,31 +22,46 @@ type deconzCollector struct {
 }
 
 var (
-	ss *sensors.Sensors = nil
+	ss *sensors.Sensors
+	logger *zap.Logger
 )
 
 //You must create a constructor for you collector that
 //initializes every descriptor and returns a pointer to the collector
-func newDeconzCollector(sss *sensors.Sensors) *deconzCollector {
-	ss = sss
+func newDeconzCollector(lgr *zap.Logger, s *sensors.Sensors) *deconzCollector {
+	logger = lgr
+	ss = s
 	sensors, err := ss.GetAllSensors()
 	if err != nil {
-		fmt.Println("sensors.GetAllSensors() ERROR: ", err)
+		logger.Error("Failed to get sensor values", zap.Error(err))
+		// might have been transient, go on
 	} else {
-		fmt.Println()
-		fmt.Println("Sensors")
-		fmt.Println("------")
 		for _, l := range sensors {
 			//fmt.Printf("Sensor:\n%s\n", l.StringWithIndentation("  "))
 	
 			if l.Type == "ZHATemperature" {
-				fmt.Printf("%s Temperature %d '%s' %d\n", l.State.LastUpdated, l.ID, l.Name, l.State.Temperature)
+				logger.Info("Temperature (C*100) sample",
+					zap.String("lastupdated", l.State.LastUpdated),
+					zap.Int("id", l.ID),
+					zap.String("name", l.Name),
+					zap.Int16("temperature", l.State.Temperature),
+				)
 			}
 			if l.Type == "ZHAHumidity" {
-				fmt.Printf("%s Humidity %d '%s' %d\n", l.State.LastUpdated, l.ID, l.Name, l.State.Humidity)
+				logger.Info("Humidity (%*100) sample",
+					zap.String("lastupdated", l.State.LastUpdated),
+					zap.Int("id", l.ID),
+					zap.String("name", l.Name),
+					zap.Int16("humidity", l.State.Humidity),
+				)
 			}
 			if l.Type == "ZHAPressure" {
-				fmt.Printf("%s Pressure %d '%s' %d\n", l.State.LastUpdated, l.ID, l.Name, l.State.Pressure)
+				logger.Info("Pressure sample",
+					zap.String("lastupdated", l.State.LastUpdated),
+					zap.Int("id", l.ID),
+					zap.String("name", l.Name),
+					zap.Int16("pressure", l.State.Pressure),
+				)
 			}
 		}
 	}
@@ -126,5 +143,8 @@ func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 		}
 	}
 
-	fmt.Printf("%v Metrics collected, oldest is from: %sZ\n", start.Format("2006-01-02T15:04:05.000Z"), oldest)
+	logger.Info("Metrics collected",
+		zap.Time("start", start),
+		zap.String("oldest", oldest),
+	)
 }
