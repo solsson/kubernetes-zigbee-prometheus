@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+docker build -t $IMAGE_NAME .
+
+ARM_IMAGE_NAME=$(echo -n $IMAGE_NAME | sed 's|:|:armhf-|')
+
+docker build -t $ARM_IMAGE_NAME \
+  --build-arg arch=arm .
+
+docker push $ARM_IMAGE_NAME
