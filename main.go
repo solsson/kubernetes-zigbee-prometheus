@@ -48,14 +48,17 @@ func main() {
 		)
 
 		ss = sensors.New(conbeeHost, conbeeKey)
-		foo := newDeconzCollector(logger, ss)
-		prometheus.MustRegister(foo)
+		deconz := newDeconzCollector(logger, ss)
+		registry := prometheus.NewRegistry()
+		registry.MustRegister(deconz)
+		prometheus.MustRegister(deconz)
 		logger.Info("Listening",
 			zap.String("endpoint", metricsEndpoint),
 			zap.String("on", metricsListen),
 		)
 
-		http.Handle(metricsEndpoint, promhttp.Handler())
+		handler := promhttp.HandlerFor(registry, promhttp.HandlerOpts{});
+		http.Handle(metricsEndpoint, handler)
 		
 		http.ListenAndServe(metricsListen, nil)
 	} else {
