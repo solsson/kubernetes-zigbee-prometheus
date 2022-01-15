@@ -13,6 +13,8 @@ Hardware  -> Driver -> Vendor's gateway/API -> a prometheus metrics endpoint -> 
 The current metrics container assumes access to a [Deconz REST API](https://github.com/dresden-elektronik/deconz-rest-plugin)
 and is therefore built as the image [solsson/prometheus-deconz-exporter](https://hub.docker.com/r/solsson/prometheus-deconz-exporter).
 
+Build using `docker buildx build  --push(?) --tag solsson(?)/prometheus-deconz-exporter:$(git rev-parse HEAD) --platform=linux/amd64,linux/arm64 .`
+
 ## References
 
  * https://phoscon.de/en/conbee2/install#docker
