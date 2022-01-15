@@ -27,3 +27,22 @@ Build using `docker buildx build  --push(?) --tag solsson(?)/prometheus-deconz-e
  * https://github.com/dresden-elektronik/deconz-rest-plugin/issues/2273
  * https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Network-lost-issues
  * https://github.com/jurgen-kluft/go-conbee
+
+## Fresh start 2022
+
+Still on a Raspberry Pi 1. Used the [imager](https://www.raspberrypi.com/software/) and selected 32bit Bullseye.
+
+Deconz version [2.13.04](https://deconz.dresden-elektronik.de/raspbian/stable/deconz-2.13.04-qt5.deb).
+
+Firmware [0x26720700](http://deconz.dresden-elektronik.de/deconz-firmware/deCONZ_RaspBeeII_0x26720700.bin.GCF)
+[md5](http://deconz.dresden-elektronik.de/deconz-firmware/deCONZ_RaspBeeII_0x26720700.bin.GCF.md5).
+
+Deconz installation
+
+```
+sudo dpkg -i ...
+sudo apt --fix-broken install
+sudo systemctl enable deconz
+```
+
+To get the API key, in the gateway click "Authenticate app" then run something like `curl -X POST -H 'Content-Type: application/json' --data '{"devicetype":"local-kubernetes"}' http://192.168.3.45/api`. Save the KEY.
