@@ -11,6 +11,15 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	ss             *sensors.Sensors
+	logger         *zap.Logger
+	gaugeValueBool = map[bool]float64{
+		false: 0,
+		true:  1,
+	}
+)
+
 //Define a struct for you collector that contains pointers
 //to prometheus descriptors for each metric you wish to expose.
 //Note you can also include fields of other types if they provide utility
@@ -20,12 +29,10 @@ type deconzCollector struct {
 	temperatureMetric *prometheus.Desc
 	humidityMetric    *prometheus.Desc
 	pressureMetric    *prometheus.Desc
+	lightlevelMetric  *prometheus.Desc
+	// luxMetric         *prometheus.Desc
+	presenceMetric *prometheus.Desc
 }
-
-var (
-	ss     *sensors.Sensors
-	logger *zap.Logger
-)
 
 //You must create a constructor for you collector that
 //initializes every descriptor and returns a pointer to the collector
@@ -90,6 +97,24 @@ func newDeconzCollector(lgr *zap.Logger, s *sensors.Sensors) *deconzCollector {
 			[]string{"name"},
 			nil,
 		),
+		lightlevelMetric: prometheus.NewDesc(
+			"light_level",
+			"Lightlevel",
+			[]string{"name"},
+			nil,
+		),
+		// luxMetric: prometheus.NewDesc(
+		// 	"light_lux",
+		// 	"Lightlevel",
+		// 	[]string{"name"},
+		// 	nil,
+		// ),
+		presenceMetric: prometheus.NewDesc(
+			"light_presence",
+			"Presence (0 or 1)",
+			[]string{"name"},
+			nil,
+		),
 	}
 }
 
@@ -102,6 +127,9 @@ func (collector *deconzCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.temperatureMetric
 	ch <- collector.humidityMetric
 	ch <- collector.pressureMetric
+	ch <- collector.lightlevelMetric
+	// ch <- collector.luxMetric
+	ch <- collector.presenceMetric
 }
 
 //Collect implements required collect function for all promehteus collectors
@@ -161,6 +189,26 @@ func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 				collector.pressureMetric,
 				prometheus.GaugeValue,
 				float64(l.State.Pressure),
+				l.Name)
+			if oldest > l.State.LastUpdated {
+				oldest = l.State.LastUpdated
+			}
+		}
+		if l.Type == "ZHALightLevel" {
+			ch <- prometheus.MustNewConstMetric(
+				collector.lightlevelMetric,
+				prometheus.GaugeValue,
+				float64(l.State.LightLevel),
+				l.Name)
+			if oldest > l.State.LastUpdated {
+				oldest = l.State.LastUpdated
+			}
+		}
+		if l.Type == "ZHAPresence" {
+			ch <- prometheus.MustNewConstMetric(
+				collector.presenceMetric,
+				prometheus.GaugeValue,
+				gaugeValueBool[l.State.Presence],
 				l.Name)
 			if oldest > l.State.LastUpdated {
 				oldest = l.State.LastUpdated
