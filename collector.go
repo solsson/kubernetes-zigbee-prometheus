@@ -124,15 +124,17 @@ func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 			return
 		}
 
-		if battery, ok := batteryByName[l.Name]; ok {
-			if l.Config.Battery != battery {
-				zap.L().Warn("Battery value differs on identical name",
-					zap.String("name", l.Name),
-					zap.String("uniqueid", l.UniqueID),
-				)
+		if l.Config.Battery > 0 {
+			if battery, ok := batteryByName[l.Name]; ok {
+				if l.Config.Battery != battery {
+					zap.L().Warn("Battery value differs on identical name",
+						zap.String("name", l.Name),
+						zap.String("uniqueid", l.UniqueID),
+					)
+				}
 			}
+			batteryByName[l.Name] = l.Config.Battery
 		}
-		batteryByName[l.Name] = l.Config.Battery
 
 		if l.Type == "ZHATemperature" {
 			ch <- prometheus.MustNewConstMetric(
