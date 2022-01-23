@@ -16,13 +16,14 @@ import (
 //Note you can also include fields of other types if they provide utility
 //but we just won't be exposing them as metrics.
 type deconzCollector struct {
+	batteryMetric     *prometheus.Desc
 	temperatureMetric *prometheus.Desc
-	humidityMetric *prometheus.Desc
-	pressureMetric *prometheus.Desc
+	humidityMetric    *prometheus.Desc
+	pressureMetric    *prometheus.Desc
 }
 
 var (
-	ss *sensors.Sensors
+	ss     *sensors.Sensors
 	logger *zap.Logger
 )
 
@@ -67,6 +68,11 @@ func newDeconzCollector(lgr *zap.Logger, s *sensors.Sensors) *deconzCollector {
 	}
 
 	return &deconzCollector{
+		batteryMetric: prometheus.NewDesc(
+			"sensor_battery",
+			"Battery counting down from 100",
+			[]string{"name"}, nil,
+		),
 		temperatureMetric: prometheus.NewDesc(
 			"climate_temperature",
 			"Temperature C",
@@ -92,6 +98,7 @@ func newDeconzCollector(lgr *zap.Logger, s *sensors.Sensors) *deconzCollector {
 func (collector *deconzCollector) Describe(ch chan<- *prometheus.Desc) {
 
 	//Update this section with the each metric you create for a given collector
+	ch <- collector.batteryMetric
 	ch <- collector.temperatureMetric
 	ch <- collector.humidityMetric
 	ch <- collector.pressureMetric
@@ -109,13 +116,29 @@ func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 
 	oldest := "2999-01-01T00:00:00"
 
+	var batteryByName = make(map[string]int16)
+
 	for _, l := range sensors {
-		//fmt.Printf("Sensor:\n%s\n", l.StringWithIndentation("  "))
+		if l.Name == "" {
+			zap.L().Error("Name missing for sensor", zap.String("uniqueid", l.UniqueID))
+			return
+		}
+
+		if battery, ok := batteryByName[l.Name]; ok {
+			if l.Config.Battery != battery {
+				zap.L().Warn("Battery value differs on identical name",
+					zap.String("name", l.Name),
+					zap.String("uniqueid", l.UniqueID),
+				)
+			}
+		}
+		batteryByName[l.Name] = l.Config.Battery
+
 		if l.Type == "ZHATemperature" {
 			ch <- prometheus.MustNewConstMetric(
 				collector.temperatureMetric,
 				prometheus.GaugeValue,
-				float64(l.State.Temperature) / 100,
+				float64(l.State.Temperature)/100,
 				l.Name)
 			if oldest > l.State.LastUpdated {
 				oldest = l.State.LastUpdated
@@ -125,7 +148,7 @@ func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 			ch <- prometheus.MustNewConstMetric(
 				collector.humidityMetric,
 				prometheus.GaugeValue,
-				float64(l.State.Humidity) / 100,
+				float64(l.State.Humidity)/100,
 				l.Name)
 			if oldest > l.State.LastUpdated {
 				oldest = l.State.LastUpdated
@@ -141,6 +164,14 @@ func (collector *deconzCollector) Collect(ch chan<- prometheus.Metric) {
 				oldest = l.State.LastUpdated
 			}
 		}
+	}
+
+	for name, battery := range batteryByName {
+		ch <- prometheus.MustNewConstMetric(
+			collector.batteryMetric,
+			prometheus.GaugeValue,
+			float64(battery),
+			name)
 	}
 
 	logger.Info("Metrics collected",
